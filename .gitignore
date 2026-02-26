@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+
+# Claude Code
+.claude/
+
+# Output files
+Obfuscated_*.ps1

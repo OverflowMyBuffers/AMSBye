@@ -6,6 +6,8 @@ VARIABLES_PATTERN = r'\$(\w+)\s*=\s*'
 VARIABLE_VALUES_PATTERN = r'\$(\w+)\s*=\s*(.*)'
 BRACKET_PATTERN = r'\[([^"\[\]]+)\](?=(?:(?:[^"]*"){2})*[^"]*$)'
 IP_ADDRESS_PATTERN = r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
+INLINE_STRING_PATTERN = r""""([^"]+)"|'([^']+)'"""
+CMDLET_PATTERN = r""""[^"]*"|'[^']*'|\b([A-Za-z]+-[A-Za-z]+)\b"""
 
 def check_extension(filename: str) -> None:
     if not os.path.splitext(filename)[-1].lower() == '.ps1':
@@ -50,6 +52,34 @@ def strings_l2r(match) -> str:
         new_value = new_value + f'"{char}",'
     new_value = new_value + ")"
     return f'${variable_name} = {new_value};[array]::Reverse(${variable_name});'
+
+def strings_reverse(match) -> str:
+    variable_name = match.group(1)
+    variable_value = match.group(2)
+    if variable_value[0] != "'" or re.search(IP_ADDRESS_PATTERN, variable_value):
+        return f'${variable_name} = {variable_value}'
+    string_content = variable_value[1:-1]
+    reversed_content = string_content[::-1]
+    string_length = len(string_content)
+    return f'${variable_name} = (-join \'{reversed_content}\'[-1..-{string_length}])'
+
+def reverse_inline_string(match) -> str:
+    if match.group(1):
+        content = match.group(1)
+        quote = '"'
+    else:
+        content = match.group(2)
+        quote = "'"
+    if len(content) <= 1 or ('$' in content and quote == '"'):
+        return match.group(0)
+    reversed_content = content[::-1]
+    return f'(-join {quote}{reversed_content}{quote}[-1..-{len(content)}])'
+
+def randomly_capitalise_cmdlet(match) -> str:
+    if match.group(1):
+        word = match.group(1)
+        return ''.join(choice((str.upper, str.lower))(char) for char in word)
+    return match.group(0)
 
 def change_ip_to_hex(match) -> str:
     ip_address = match.group(0)

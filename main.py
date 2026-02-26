@@ -6,12 +6,13 @@ from datetime import datetime
 @click.option('--changevariables', is_flag=True, help='Change variable names to random words from a dictionary. Dictionary words tend to not be suspicious')
 @click.option('--caps', is_flag=True, help='Randomly capatalise variable/function names')
 @click.option('--left2right', is_flag=True, help='Reverses strings to an array and read in reverse')
+@click.option('--reversestrings', is_flag=True, help='Reverse strings and reconstruct them at runtime using PowerShell slicing')
 @click.option('--iphex', is_flag=True, help='Transform potential IP addresses in the code to hexaddresses')
 @click.option('--comments', is_flag=True, help='Place random comments in the code to differantiate the final hash even more')
 @click.option('--oneliner', is_flag=True, help='Convert the powershell into a oneliner. This will not add any comments to fill the script\r\n Note:Only advisable on smaller codebases')
 @click.option('--output', default='', help='Custom output filename, default will be Obfuscated_inputfilename_datetime.ps1')
 @click.argument("inputfile")
-def main(all, changevariables, caps, left2right, iphex, comments, oneliner, output, inputfile):
+def main(all, changevariables, caps, left2right, reversestrings, iphex, comments, oneliner, output, inputfile):
     print('Starting AMSBye')
     utils.check_extension(inputfile)
     utils.check_file_exists(inputfile)
@@ -27,10 +28,14 @@ def main(all, changevariables, caps, left2right, iphex, comments, oneliner, outp
         amspye.change_variable_names()
     if caps or all:
         amspye.capatalise_functions()
+        amspye.capitalise_cmdlets()
     if left2right or all:
         altered_variables: list[str] = amspye.left2right()
         for variable_name in altered_variables:
             amspye.replace_variables_except_first_and_second_to_join(variable_name=variable_name)
+    if reversestrings or all:
+        amspye.reverse_inline_strings()
+        amspye.reverse_strings()
     if iphex or all:
         amspye.ip_to_hex()
     if oneliner:

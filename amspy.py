@@ -5,9 +5,14 @@ from utils import (
     VARIABLE_VALUES_PATTERN,
     BRACKET_PATTERN,
     IP_ADDRESS_PATTERN,
+    INLINE_STRING_PATTERN,
+    CMDLET_PATTERN,
     return_random_word,
     randomly_capatalise,
     strings_l2r,
+    strings_reverse,
+    reverse_inline_string,
+    randomly_capitalise_cmdlet,
     change_ip_to_hex,
     get_story
 )
@@ -51,6 +56,47 @@ class AMSIPye:
         cp = itertools.count(step=1)
         regex = r'\$' + re.escape(variable_name)
         self.input_stream = re.sub(regex, lambda x:x.group() if not next(c) or not next(cp) else f'(-join({x.group()}))', self.input_stream)
+
+    def reverse_strings(self) -> None:
+        self.input_stream = re.sub(VARIABLE_VALUES_PATTERN, strings_reverse, self.input_stream)
+
+    def reverse_inline_strings(self) -> None:
+        lines = self.input_stream.split('\n')
+        in_block_comment = False
+        result = []
+        for line in lines:
+            stripped = line.strip()
+            if '<#' in stripped:
+                in_block_comment = True
+            if '#>' in stripped:
+                in_block_comment = False
+                result.append(line)
+                continue
+            if in_block_comment or stripped.startswith('#'):
+                result.append(line)
+                continue
+            line = re.sub(INLINE_STRING_PATTERN, reverse_inline_string, line)
+            result.append(line)
+        self.input_stream = '\n'.join(result)
+
+    def capitalise_cmdlets(self) -> None:
+        lines = self.input_stream.split('\n')
+        in_block_comment = False
+        result = []
+        for line in lines:
+            stripped = line.strip()
+            if '<#' in stripped:
+                in_block_comment = True
+            if '#>' in stripped:
+                in_block_comment = False
+                result.append(line)
+                continue
+            if in_block_comment or stripped.startswith('#'):
+                result.append(line)
+                continue
+            line = re.sub(CMDLET_PATTERN, randomly_capitalise_cmdlet, line)
+            result.append(line)
+        self.input_stream = '\n'.join(result)
 
     def ip_to_hex(self) -> None:
         self.input_stream = re.sub(IP_ADDRESS_PATTERN, change_ip_to_hex, self.input_stream)
