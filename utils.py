@@ -6,8 +6,8 @@ VARIABLES_PATTERN = r'\$(\w+)\s*=\s*'
 VARIABLE_VALUES_PATTERN = r'\$(\w+)\s*=\s*(.*)'
 BRACKET_PATTERN = r'\[([^"\[\]]+)\](?=(?:(?:[^"]*"){2})*[^"]*$)'
 IP_ADDRESS_PATTERN = r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
-INLINE_STRING_PATTERN = r""""([^"]+)"|'([^']+)'"""
-CMDLET_PATTERN = r""""[^"]*"|'[^']*'|\b([A-Za-z]+-[A-Za-z]+)\b"""
+INLINE_STRING_PATTERN = r""""((?:[^"`]|`.)*)"|'((?:[^']|'')*)'"""
+CMDLET_PATTERN = r""""(?:[^"`]|`.)*"|'(?:[^']|'')*'|\b([A-Za-z]+-[A-Za-z]+)\b"""
 
 def check_extension(filename: str) -> None:
     if not os.path.splitext(filename)[-1].lower() == '.ps1':
@@ -64,13 +64,17 @@ def strings_reverse(match) -> str:
     return f'${variable_name} = (-join \'{reversed_content}\'[-1..-{string_length}])'
 
 def reverse_inline_string(match) -> str:
-    if match.group(1):
+    if match.group(1) is not None:
         content = match.group(1)
         quote = '"'
     else:
         content = match.group(2)
         quote = "'"
-    if len(content) <= 1 or ('$' in content and quote == '"'):
+    if len(content) <= 1:
+        return match.group(0)
+    if quote == '"' and ('$' in content or '`' in content):
+        return match.group(0)
+    if quote == "'" and "''" in content:
         return match.group(0)
     reversed_content = content[::-1]
     return f'(-join {quote}{reversed_content}{quote}[-1..-{len(content)}])'
