@@ -1,20 +1,3 @@
-<#
-    PowerUp aims to be a clearinghouse of common Windows privilege escalation
-    vectors that rely on misconfigurations. See README.md for more information.
-
-    Author: @harmj0y
-    License: BSD 3-Clause
-    Required Dependencies: None
-    Optional Dependencies: None
-#>
-
-
-########################################################
-#
-# Helpers
-#
-########################################################
-
 aDd-tyPe @"
   [System.FlagsAttribute]
   public enum ServiceAccessFlags : uint
@@ -40,18 +23,7 @@ aDd-tyPe @"
 "@
 
 function gEt-mODIFiablEfiLe {
-<#
-    .SYNOPSIS
 
-        Helper to return any modifiable file that's a part of a passed string.
-        
-    .EXAMPLE
-
-        PS C:\> '"C:\Temp\blah.bat" -f "C:\Temp\config.ini"' | Get-ModifiableFile
-
-        Return the paths "C:\Temp\blah.bat" or "C:\Temp\config.ini" if they are
-        modifable by the current user context.
-#>
 
     [CmdLetBINdINg()]
     Param(
@@ -106,32 +78,7 @@ function gEt-mODIFiablEfiLe {
 }
 
 function tESt-SErVICeDAcLperMISSIoN {
-<#
-    .SYNOPSIS
 
-        This function checks if the current user has specific DACL permissions 
-        for a specific service with the aid of 'sc.exe sdshow'.
-
-    .PARAMETER ServiceName
-
-        The service name to verify the permissions against. Required.
-
-    .PARAMETER Dacl
-
-        The DACL permissions. Required.
-  
-    .EXAMPLE
-
-        PS C:\> Test-ServiceDaclPermission -ServiceName VulnSVC -Dacl WPRPDC
-
-        Return $True if the current user has Stop (WP), Start (RP),
-        and ChangeConf (DC) service permissions for 'VulnSVC' otherwise return $False.
-
-    .LINK
-
-        https://support.microsoft.com/en-us/kb/914392
-        https://rohnspowershellblog.wordpress.com/2013/03/19/viewing-service-acls/
-#>
 
     [CmdletBinding()]
         Param(
@@ -216,21 +163,7 @@ function tESt-SErVICeDAcLperMISSIoN {
 }
 
 function iNvOkE-SeRViceStart {
-<#
-    .SYNOPSIS
 
-        Starts a specified service, first enabling the service if it was marked as disabled.
-
-    .PARAMETER ServiceName
-
-        The service name to start. Required.
-
-    .EXAMPLE
-
-        PS C:\> Invoke-ServiceStart -ServiceName VulnSVC
-
-        Start the 'VulnSVC' service.
-#>
 
     [CmdletBinding()]
     Param(
@@ -274,21 +207,7 @@ function iNvOkE-SeRViceStart {
 
 
 function invOke-sERVicEstoP {
-<#
-    .SYNOPSIS
 
-        Stops a specified service.
-
-    .PARAMETER ServiceName
-
-        The service name to stop. Required.
-        
-    .EXAMPLE
-
-        PS C:\> Invoke-ServiceStop -ServiceName VulnSVC
-
-        Stop the 'VulnSVC' service.
-#>
 
     [CmdletBinding()]
     Param(
@@ -334,21 +253,7 @@ function invOke-sERVicEstoP {
 
 
 function inVoKE-sErvICeEnABle {
-<#
-    .SYNOPSIS
 
-        Enables a specified service.
-
-    .PARAMETER ServiceName
-
-        The service name to enable. Required.
-        
-    .EXAMPLE
-
-        PS C:\> Invoke-ServiceEnable -ServiceName VulnSVC
-
-        Enables the 'VulnSVC' service.
-#>
 
     [CmdletBinding()]
     Param(
@@ -382,21 +287,7 @@ function inVoKE-sErvICeEnABle {
 
 
 function INVokE-sERVIcediSAble {
-<#
-    .SYNOPSIS
 
-        Disables a specified service.
-
-    .PARAMETER ServiceName
-
-        The service name to disable. Required.
-    
-    .EXAMPLE
-
-        PS C:\> Invoke-ServiceDisable -ServiceName VulnSVC
-
-        Disables the 'VulnSVC' service.
-#>
 
     [CmdletBinding()]
     Param(
@@ -436,22 +327,7 @@ function INVokE-sERVIcediSAble {
 ########################################################
 
 function gET-SERViceuNquOTEd {
-<#
-    .SYNOPSIS
 
-        Returns the name and binary path for services with unquoted paths
-        that also have a space in the name.
-        
-    .EXAMPLE
-
-        PS C:\> $AsquareTweesht = Get-ServiceUnquoted
-        
-        Get a set of potentially exploitable services.
-
-    .LINK
-      
-        https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/windows/local/trusted_service_path.rb
-#>
 
     # find all paths to service .exe's that have a space in the path and aren't quoted
     $LarklikeSweepage = GeT-wmIObjEct -Class win32_service | WHeRe-oBJECt {$_} | wHERe-oBject {($_.pathname -ne $null) -and ($_.pathname.trim() -ne "")} | wHeRe-ObJEct {-not $_.pathname.StartsWith("`"")} | whEre-OBJeCT {-not $_.pathname.StartsWith("'")} | WhEre-ObJEct {($_.pathname.Substring(0, $_.pathname.IndexOf((-join "exe."[-1..-4])) + 4)) -match (-join "*. *."[-1..-5])}
